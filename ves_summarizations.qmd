@@ -1,0 +1,116 @@
+---
+title: "Modeling Team VES Data"
+format: html
+editor: visual
+---
+
+## Load Packages
+```{r}
+
+if (!require(librarian)){
+  install.packages("librarian")
+  library(librarian)
+}
+
+librarian::shelf(tidyverse, here, DBI, RPostgres, lubridate)
+
+```
+
+## Connect to `ribbitr` database
+```{r}
+
+tryCatch({
+    drv <- dbDriver("Postgres")
+    print("Connecting to Database…")
+    connection <- dbConnect(drv,
+                 dbname = Sys.getenv("aws_dbname"),
+                 host = Sys.getenv("aws_host"),
+                 port = Sys.getenv("aws_port"),
+                 user = Sys.getenv("aws_user"),
+                 password = Sys.getenv("aws_password"),
+                 timezone=NULL)
+    print("Database Connected!")
+    },
+    error=function(cond) {
+            print("Unable to connect to Database.")
+    })
+
+#search path
+dbExecute(connection, "set search_path to survey_data")
+
+```
+
+## Query VES 'flavored' data
+
+### All VES Data
+
+```{r}
+
+ves_q <- "select l.location, r.region, s.site, v.date, s2.detection_type, v2.species_ves, v2.count
+          from location l
+          join region r on l.location_id = r.location_id
+          join site s on r.region_id = s.region_id
+          join visit v on s.site_id = v.site_id
+          join survey s2 on v.visit_id = s2.visit_id
+          join ves v2 on s2.survey_id = v2.survey_id;"
+
+#### tally count per species on grouping of location, region, site, and date
+#### add year column for summarization
+all_ves_data <- dbGetQuery(connection, ves_q) %>% 
+  group_by(location, region, site, date, species_ves) %>% 
+  reframe(count = n()) %>% 
+  rename(species = species_ves) %>% 
+  mutate(year = year(date))
+
+```
+
+### Panama Capture VES Flavored Data
+```{r}
+
+p_capture <- "select l.location, r.region, s.site, v.date, v.survey_time, s2.detection_type, v2.species_capture
+             from location l
+             join region r on l.location_id = r.location_id 
+             join site s on r.region_id = s.region_id 
+             join visit v on s.site_id = v.site_id 
+             join survey s2 on v.visit_id = s2.visit_id 
+             join capture v2 on s2.survey_id = v2.survey_id
+             where l.location = 'panama';"
+
+#### tally count per species on grouping of location, region, site, and date
+#### add year column for summarization
+panama_capture_data <- dbGetQuery(connection, p_capture) %>% 
+  group_by(location, region, site, date, species_capture) %>% 
+  reframe(count = n()) %>% 
+  arrange(date) %>% 
+  rename(species = species_capture) %>% 
+  mutate(year = year(date))
+
+
+```
+
+
+####  `rbind` Panama Captures with all VES
+```{r}
+
+all_ves_flavored <- rbind(all_ves_data, panama_capture_data)
+  
+
+```
+
+## Visualize
+
+### Counts through time - Bar Plot
+```{r}
+
+
+```
+
+
+### Top Species per Region - Bar Plot
+```{r}
+
+
+
+```
+
+### 
