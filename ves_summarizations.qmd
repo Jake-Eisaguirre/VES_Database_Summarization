@@ -1,10 +1,11 @@
 ---
 title: "Modeling Team VES Data"
 format: html
-editor: visual
+editor: source
 ---
 
 ## Load Packages
+
 ```{r}
 
 if (!require(librarian)){
@@ -17,6 +18,7 @@ librarian::shelf(tidyverse, here, DBI, RPostgres, lubridate)
 ```
 
 ## Connect to `ribbitr` database
+
 ```{r}
 
 tryCatch({
@@ -65,6 +67,7 @@ all_ves_data <- dbGetQuery(connection, ves_q) %>%
 ```
 
 ### Panama Capture VES Flavored Data
+
 ```{r}
 
 p_capture <- "select l.location, r.region, s.site, v.date, v.survey_time, s2.detection_type, v2.species_capture
@@ -88,8 +91,8 @@ panama_capture_data <- dbGetQuery(connection, p_capture) %>%
 
 ```
 
+#### `rbind` Panama Captures with all VES
 
-####  `rbind` Panama Captures with all VES
 ```{r}
 
 all_ves_flavored <- rbind(all_ves_data, panama_capture_data)
@@ -100,17 +103,71 @@ all_ves_flavored <- rbind(all_ves_data, panama_capture_data)
 ## Visualize
 
 ### Counts through time - Bar Plot
+
 ```{r}
 
+year_reg_data <- all_ves_flavored %>% 
+  select(region, year, species) %>% 
+  group_by(region, year) %>%
+  reframe(count = n()) %>% 
+  group_by(year) %>% 
+  mutate(total = sum(count))
+
+
+# Create a custom color palette with 16 unique colors
+custom_palette <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00",
+                    "#FFFF33", "#A65628", "#F781BF", "#999999", "#66C2A5",
+                    "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#B3B3B3")
+
+
+
+# Create the ggplot
+ggplot(data = year_reg_data, aes(x = factor(year), y = count, fill = region)) +
+  geom_col() +
+
+  # Customize the appearance
+  theme_minimal() +  # Choose a theme
+  labs(
+    title = "VES by Year and Region",
+    x = "Year",
+    y = "Amphibian Visual Encounters",
+    fill = "Region"
+  ) +
+  scale_fill_manual(values = custom_palette) +  # Use custom colors
+  theme(
+    legend.position = "top",  # Move the legend to the top
+    legend.key.size = unit(0.5, "lines"),  # Adjust the size of the legend key
+    legend.text = element_text(size = 8),  # Adjust the size of the legend text
+    panel.grid.major = element_blank(),  # Remove gridlines
+    panel.border = element_blank(),  # Remove panel border
+    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels
+  ) +
+  geom_text(aes(x = factor(year), y = total, label = total),
+            vjust = -0.5, size = 2, color = "black")
 
 ```
 
+## Sierra Nevada
 
-### Top Species per Region - Bar Plot
-```{r}
+-   Per Site: 1 VES survey + 3 CMR surveys. Usually the day before CMR or the first day of CMR conducted concurrently with CMR.
+-   Attempt bi-annual survey period
+    -   Summer only
+    - each CMR site (of which there are ~50 site IDs located in ~20 basins) is visited twice a summer with visits spaced about a          month apart. The goal is to conduct a 3-day CMR, and to conduct a VES on day 0 (prior to CMR) or day 1 of the primary period        for each visit. The only exception to this study design is Dog lake, which we visit 3-6 times in a summer conducting 1-day CMR       while conducting VES concurrently.
 
+There are a number of sites that we visit annually and a large group of sites (500-800?) that we visit every decade or so where we just conduct VES. 
 
+## Panama
 
-```
+-   Per Site: 3 day surveys + 1 night survey (attempt at every site)
+    - capture every organism they see (capture). If not able to capture, record visual observation (VES). Attempt to ID and record every organism heard (aural).
+    - capture and VES can be used together as no one single organism would be captured and VES data point.
+    - See above query for utilizing both panama capture and VES to get raw counts.
+-   Bi-annual survey period (June/July and November/December)
+    -   straddles transition period of rainy to dry or dry to rainy season.
+    
+## Penn
 
-### 
+- Per Site: 3 Aural survey + 3 VES surveys + 1 (or 2) Capture surveys
+  - 
+- Attempt bi-annual survey period
+  - Summer to early fall
