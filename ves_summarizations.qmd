@@ -168,10 +168,14 @@ There are a number of sites that we visit annually and a large group of sites (5
 ## Penn
 
 - Per Site: 3 Aural survey + 3 VES surveys + 1 (or 2) Capture surveys
-- Attempt bi-annual survey period
+- Attempt 3-annual survey period
   - Summer to early fall
   - 7 sites which get surveyed twice a year 3 days in row (attempted)
   
 ## Brazil
 
-- 
+- (So far) Per Site: 1 Capture survey + 1 VES survey
+  - Sites are transects and each site is paired. (b6w, b6w)
+- Attempt bi-annual survey period
+- Only have Boraceia VES data, Santa Virginia being collected now.
+- VES data is identical to Capture data as all orgs spotted along transect were captured. 
