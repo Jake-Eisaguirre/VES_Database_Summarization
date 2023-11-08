@@ -100,6 +100,41 @@ all_ves_flavored <- rbind(all_ves_data, panama_capture_data)
 
 ```
 
+
+
+## Sierra Nevada
+
+-   Per Site: 1 VES survey + 3 CMR surveys. Usually the day before CMR or the first day of CMR conducted concurrently with CMR.
+-   Attempt bi-annual survey period
+    -   Summer only
+    - each CMR site (of which there are ~50 site IDs located in ~20 basins) is visited twice a summer with visits spaced about a month apart. The goal is to conduct a 3-day CMR, and to conduct a VES on day 0 (prior to CMR) or day 1 of the primary period for each visit. The only exception to this study design is Dog lake, which we visit 3-6 times in a summer conducting 1-day CMR while conducting VES concurrently.
+
+There are a number of sites that we visit annually and a large group of sites (500-800?) that we visit every decade or so where we just conduct VES. 
+
+## Panama
+
+-   Per Site: 3 day surveys + 1 night survey (attempt at every site)
+    - capture every organism they see (capture). If not able to capture, record visual observation (VES). Attempt to ID and record every organism heard (aural).
+    - capture and VES can be used together as no one single organism would be captured and VES data point.
+    - See above query for utilizing both panama capture and VES to get raw counts.
+-   Bi-annual survey period (June/July and November/December)
+    -   straddles transition period of rainy to dry or dry to rainy season.
+    
+## Penn
+
+- Per Site: 3 Aural survey + 3 VES surveys + 1 (or 2) Capture surveys
+- Attempt tri-annual survey period
+  - Early summer, summer, early fall
+  - 7 sites which get surveyed three times a year, 3 days in row (attempted)
+  
+## Brazil
+
+- (So far) Per Site: 1 Capture survey + 1 VES survey
+  - Sites are transects and each site is paired. (b6w, b6w)
+- Attempt bi-annual survey period
+- Only have Boraceia VES data, Santa Virginia being collected now.
+- VES data is identical to Capture data as all orgs spotted along transect were captured. 
+
 ## Visualize
 
 ### Counts through time - Bar Plot
@@ -147,35 +182,53 @@ ggplot(data = year_reg_data, aes(x = factor(year), y = count, fill = region)) +
 
 ```
 
-## Sierra Nevada
 
--   Per Site: 1 VES survey + 3 CMR surveys. Usually the day before CMR or the first day of CMR conducted concurrently with CMR.
--   Attempt bi-annual survey period
-    -   Summer only
-    - each CMR site (of which there are ~50 site IDs located in ~20 basins) is visited twice a summer with visits spaced about a          month apart. The goal is to conduct a 3-day CMR, and to conduct a VES on day 0 (prior to CMR) or day 1 of the primary period        for each visit. The only exception to this study design is Dog lake, which we visit 3-6 times in a summer conducting 1-day CMR       while conducting VES concurrently.
+```{r}
 
-There are a number of sites that we visit annually and a large group of sites (500-800?) that we visit every decade or so where we just conduct VES. 
+#wrangle data
+comp_spec <- all_ves_flavored %>% 
+  select(region, species) %>% 
+  group_by(region, species) %>% 
+  reframe(count = n()) %>% 
+  filter(count > 20,
+         count < 1500) %>% 
+  group_by(species) %>% 
+  mutate(tot_count = sum(count)) %>% 
+  ungroup() %>% 
+  mutate(species = reorder(species, -tot_count))
 
-## Panama
 
--   Per Site: 3 day surveys + 1 night survey (attempt at every site)
-    - capture every organism they see (capture). If not able to capture, record visual observation (VES). Attempt to ID and record every organism heard (aural).
-    - capture and VES can be used together as no one single organism would be captured and VES data point.
-    - See above query for utilizing both panama capture and VES to get raw counts.
--   Bi-annual survey period (June/July and November/December)
-    -   straddles transition period of rainy to dry or dry to rainy season.
-    
-## Penn
-
-- Per Site: 3 Aural survey + 3 VES surveys + 1 (or 2) Capture surveys
-- Attempt 3-annual survey period
-  - Summer to early fall
-  - 7 sites which get surveyed twice a year 3 days in row (attempted)
+species_tot_comp <- comp_spec %>% 
+  group_by(species) %>% 
+  summarise(tot_count = sum(count))
   
-## Brazil
+# Create a custom color palette with 8 unique region colors
+custom_palette <- c("#1f77b4", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "darkgreen",
+                    "darkred", "purple", "darkblue")
 
-- (So far) Per Site: 1 Capture survey + 1 VES survey
-  - Sites are transects and each site is paired. (b6w, b6w)
-- Attempt bi-annual survey period
-- Only have Boraceia VES data, Santa Virginia being collected now.
-- VES data is identical to Capture data as all orgs spotted along transect were captured. 
+
+ggplot() +
+  geom_col(data = comp_spec, aes(x = species, y = count, fill = region), width = 0.7, color = "black") +
+  
+  # Add total count as geom_text labels
+  geom_text(data = species_tot_comp, aes(x = species, y = tot_count, label = tot_count),
+            vjust = -0.5, size = 2, color = "black") +
+  
+  theme_minimal() +
+  labs(
+    title = "Database VES Species Composition",
+    subtitle = "rana_muscosa, hyliola_regilla, thamnophis_elegans removed (5516, 5609, 1737), 89 species",
+    x = "Species",
+    y = "Bd Swab Results",
+    fill = "Species"
+  ) +
+    scale_fill_manual(name = "Top Regions", values = custom_palette) +  # Use custom palette and set legend title
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right",
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
