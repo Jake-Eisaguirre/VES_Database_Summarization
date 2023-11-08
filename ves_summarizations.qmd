@@ -46,9 +46,12 @@ dbExecute(connection, "set search_path to survey_data")
 
 ### All VES Data
 
+![](schema.png)
+
 ```{r}
 
-ves_q <- "select l.location, r.region, s.site, v.date, s2.detection_type, v2.species_ves, v2.count
+ves_q <- "select l.location, r.region, s.site, v.date, s2.detection_type, v2.species_ves, 
+          v2.count
           from location l
           join region r on l.location_id = r.location_id
           join site s on r.region_id = s.region_id
@@ -70,7 +73,8 @@ all_ves_data <- dbGetQuery(connection, ves_q) %>%
 
 ```{r}
 
-p_capture <- "select l.location, r.region, s.site, v.date, v.survey_time, s2.detection_type, v2.species_capture
+p_capture <- "select l.location, r.region, s.site, v.date, v.survey_time, s2.detection_type, 
+             v2.species_capture
              from location l
              join region r on l.location_id = r.location_id 
              join site s on r.region_id = s.region_id 
@@ -100,40 +104,36 @@ all_ves_flavored <- rbind(all_ves_data, panama_capture_data)
 
 ```
 
-
-
 ## Sierra Nevada
 
 -   Per Site: 1 VES survey + 3 CMR surveys. Usually the day before CMR or the first day of CMR conducted concurrently with CMR.
 -   Attempt bi-annual survey period
     -   Summer only
-    - each CMR site (of which there are ~50 site IDs located in ~20 basins) is visited twice a summer with visits spaced about a month apart. The goal is to conduct a 3-day CMR, and to conduct a VES on day 0 (prior to CMR) or day 1 of the primary period for each visit. The only exception to this study design is Dog lake, which we visit 3-6 times in a summer conducting 1-day CMR while conducting VES concurrently.
-
-There are a number of sites that we visit annually and a large group of sites (500-800?) that we visit every decade or so where we just conduct VES. 
+    -   each CMR site (of which there are \~50 site IDs located in \~20 basins) is visited twice a summer with visits spaced about a month apart. The goal is to conduct a 3-day CMR, and to conduct a VES on day 0 (prior to CMR) or day 1 of the primary period for each visit. The only exception to this study design is Dog lake, which we visit 3-6 times in a summer conducting 1-day CMR while conducting VES concurrently. There are a number of sites that we visit annually and a large group of sites (500-800?) that we visit every decade or so where we just conduct VES.
 
 ## Panama
 
 -   Per Site: 3 day surveys + 1 night survey (attempt at every site)
-    - capture every organism they see (capture). If not able to capture, record visual observation (VES). Attempt to ID and record every organism heard (aural).
-    - capture and VES can be used together as no one single organism would be captured and VES data point.
-    - See above query for utilizing both panama capture and VES to get raw counts.
+    -   capture every organism they see (capture). If not able to capture, record visual observation (VES). Attempt to ID and record every organism heard (aural).
+    -   capture and VES can be used together as no one single organism would be captured and VES data point.
+    -   See above query for utilizing both panama capture and VES to get raw counts.
 -   Bi-annual survey period (June/July and November/December)
     -   straddles transition period of rainy to dry or dry to rainy season.
-    
+
 ## Penn
 
-- Per Site: 3 Aural survey + 3 VES surveys + 1 (or 2) Capture surveys
-- Attempt tri-annual survey period
-  - Early summer, summer, early fall
-  - 7 sites which get surveyed three times a year, 3 days in row (attempted)
-  
+-   Per Site: 3 Aural survey + 3 VES surveys + 1 (or 2) Capture surveys
+-   Attempt tri-annual survey period
+    -   Early summer, summer, early fall
+    -   7 sites which get surveyed three times a year, 3 days in row (attempted)
+
 ## Brazil
 
-- (So far) Per Site: 1 Capture survey + 1 VES survey
-  - Sites are transects and each site is paired. (b6w, b6w)
-- Attempt bi-annual survey period
-- Only have Boraceia VES data, Santa Virginia being collected now.
-- VES data is identical to Capture data as all orgs spotted along transect were captured. 
+-   (So far) Per Site: 1 Capture survey + 1 VES survey
+    -   Sites are transects and each site is paired. (b6w, b6w)
+-   Attempt bi-annual survey period
+-   Only have Boraceia VES data, Santa Virginia being collected now. Current campaign will be more standardized
+    -   Last season VES data is identical to Capture data as all orgs spotted along transect were captured.
 
 ## Visualize
 
@@ -181,7 +181,6 @@ ggplot(data = year_reg_data, aes(x = factor(year), y = count, fill = region)) +
             vjust = -0.5, size = 2, color = "black")
 
 ```
-
 
 ```{r}
 
@@ -231,4 +230,3 @@ ggplot() +
     plot.title = element_text(hjust = 0.5)
   )
 ```
-
